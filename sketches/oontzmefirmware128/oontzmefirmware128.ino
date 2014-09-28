@@ -221,56 +221,16 @@ void setup()
 {
 
 	Serial.begin(38400);
-	Serial.println("oontzme unit test");
 
 	/* interrupt pin requires pullup */
 	pinMode(INTPIN, INPUT);
 	digitalWrite(INTPIN, HIGH);
 	
-	//trellis.begin(0x75);
 	trellis.begin(0x70, 0x72, 0x71, 0x73, 0x74, 0x76, 0x75, 0x77);
+
+	trellis.clear();
+	trellis.writeDisplay();
 	
-	/* Turn them all on */
-	for (uint8_t i = 0; i < NUMKEYS; i++)
-	{
-		trellis.setLED(i);
-		trellis.writeDisplay();
-		delay(1);
-	}
-
-	/* Turn them off */
-	for (uint8_t i = 0; i < NUMKEYS; i++)
-	{
-		trellis.clrLED(i);
-		trellis.writeDisplay();
-		delay(1);
-	}
-	
-	/* Iterate through them one by one by matrix */
-	for (uint8_t i = 0; i < YSIZE; i++)
-	{
-		for (uint8_t j = 0; j < XSIZE; j++)
-		{
-			trellis.setLED(XYTOI[j][i]);
-			trellis.writeDisplay();
-			delay(3);
-
-			trellis.clrLED(XYTOI[j][i]);
-			trellis.writeDisplay();
-		}
-	}
-	
-	/* Finally, iterate through them with the other matrix */
-	for (uint8_t i = 0; i < NUMKEYS; i++)
-	{
-		trellis.setLED(XYTOI[ITOXY[i][0]][ITOXY[i][1]]);
-		trellis.writeDisplay();
-		delay(1);
-
-		trellis.clrLED(XYTOI[ITOXY[i][0]][ITOXY[i][1]]);
-		trellis.writeDisplay();
-	}
-
 	attachInterrupt(4, buttonPress, CHANGE);
 }
 
@@ -303,33 +263,15 @@ void readButtons()
 	{
 		if (trellis.justPressed(i)) 
 		{
-			/* Show the index */
-			Serial.print("index: "); 
-			Serial.println(i);
-			
-			/* Show the index it thinks the matrix says */
-			Serial.print("mapped index: "); 
-			Serial.println(XYTOI[ITOXY[i][0]][ITOXY[i][1]]);
-			
-			
-			/* Show the coordinates */
-			Serial.print("coordinates: ");
-			Serial.print(ITOXY[i][0]);
-			Serial.print(", ");
-			Serial.println(ITOXY[i][1]);
-			
-			/* Flip it */
-			if (trellis.isLED(i))
-			{
-			    trellis.clrLED(i);
-			}
-			else
-			{
-			    trellis.setLED(i);
-			}
+            Serial.write((0 << 4) | (1 & 15));
+            Serial.write((ITOXY[i][1] << 4) | (ITOXY[i][0] & 15));
 		}
-	}
- 
-   trellis.writeDisplay();
+		if (trellis.justReleased(i))
+		{
+			uint8_t cmd = (0 << 4) | (0 & 15);
+            Serial.write(cmd);
+            Serial.write((ITOXY[i][1] << 4) | (ITOXY[i][0] & 15));
+		}
+	} 
 }
 
