@@ -8,6 +8,18 @@
   MIT license, all text above must be included in any redistribution
  ****************************************************/
 
+/* 
+
+This sketch was largely based on the Arduinome clone originally by Owen 
+Vallis & Jordan Hochenbaum: http://flipmu.com/work/arduinome/
+
+http://monome.org/
+
+Robin Stubbs
+robin.stubbs@uleth.ca
+
+*/
+
 #include <Wire.h>
 #include "Adafruit_Trellis.h"
 
@@ -214,13 +226,22 @@ static uint8_t ITOXY[NUMKEYS][2] = {
 
 #define INTPIN 7
 
+/* State variables for command processing */
 volatile bool updateState = 0;
+unsigned long lastchecktime = 0;
+bool waitingCommand = true;  
+uint8_t command =  0;  
+uint8_t state = 0;
+uint8_t byte0 = 0;
+uint8_t byte1 = 0;
+uint8_t x = 0;
+uint8_t y = 0;
 
 
 void setup() 
 {
 
-	Serial.begin(38400);
+	Serial.begin(115200);
 
 	/* interrupt pin requires pullup */
 	pinMode(INTPIN, INPUT);
@@ -239,8 +260,12 @@ void loop()
 {
 	unsigned long t = millis();
 	
-  	if (t % 50 == 0)
+	checkSerial();
+	
+  	if (t > 50 + lastchecktime)
 	{
+		lastchecktime = t;
+		
 		if (updateState)
 		{
 			updateState = 0;
@@ -275,3 +300,127 @@ void readButtons()
 	} 
 }
 
+void checkSerial() 
+{    
+	while (Serial.available()) 
+	{
+    	if (waitingCommand) 
+		{          
+			byte0 = Serial.read();
+			command = byte0 >> 4;
+			waitingCommand = false;
+    	}
+
+		if (Serial.available()) 
+		{ 
+			byte1 = Serial.read(); // read the second byte of this command
+			waitingCommand = true; 
+
+			switch(command) 
+			{
+
+				/* LED Command */
+            	case 2: 
+				
+					/* LED On or Off? */
+					state = byte0 & 0x0F; 
+					x = (byte1 >> 4); 
+					y = (byte1 & 15);
+
+					if (!state) 
+					{
+						trellis.clrLED(XYTOI[x][y]);
+					}
+               	 	else 
+					{
+						trellis.setLED(XYTOI[x][y]); 
+               	 	}
+              
+			  	  	break;
+
+				/* LED Intensity */
+				case 3: 
+					
+					/* We ignore for now. Don't support it */
+					//curInt = (byte1 & 0x0f);
+					break;
+					
+				/* LED Test Command */
+				case 4: 
+				
+					/* What does this even do? do we care? */
+					if ((byte1 & 1) == 0) 
+					{
+						
+                	}
+              	  	else 
+					{
+						trellis.clear();
+					}
+				   	
+					break;
+
+				/* Tilt Command */
+				case 5: 
+              
+					/* No accellerometers, let's ignore for now */
+			  		state = byte1 & 0x0F;
+            		break;
+
+				/* Shutdown: another one we get to blissfully ignore */
+            	case 6: 
+            
+					break;
+				
+				/* LED Row command */	
+				case 7:
+
+					/* There's not enough bytes - what's that mean? */
+					/* For now, we'll only do the first half of the display */
+					y = 0x0F & byte0;
+				    x = 0;
+
+					/* No matter the size of the unit, only 8 bits are stored in this command */
+				    for (int i = 0; i < 8; i++)
+					{
+						if (byte1 & (1 << (7 - i)))
+						{
+							trellis.setLED(XYTOI[i][y]);
+						}
+						else
+						{
+							trellis.clrLED(XYTOI[i][y]);
+						}
+					}
+
+					break;
+			
+				/* LED Column Command */
+				case 8:
+					 
+					/* Let's assume this will get the most use on a 64 and 128 */
+					x = 0x0F & byte0;
+					y = 0;
+
+					/* No matter the size of the unit, only 8 bits are stored in this command */
+				    for (int i = 0; i < 8; i++)
+					{
+						if (byte1 & (1 << (7 - i)))
+						{
+							trellis.setLED(XYTOI[x][i]);
+						}
+						else
+						{
+							trellis.clrLED(XYTOI[x][i]);
+						}
+					}
+
+            		break;
+			}
+		}
+	}
+		
+	/* Don't update the display until the serial queue is empty */
+	trellis.writeDisplay();
+}			
+				
