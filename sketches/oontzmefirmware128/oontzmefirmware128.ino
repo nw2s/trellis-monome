@@ -1,24 +1,29 @@
-/*************************************************** 
-  This is a test example for the Adafruit Trellis w/HT16K33
-  Designed specifically to work with the Adafruit Trellis 
-  ----> https://www.adafruit.com/products/1616
-  ----> https://www.adafruit.com/products/1611
-
-  Based on code originally written by Limor Fried/Ladyada for Adafruit Industries.  
-  MIT license, all text above must be included in any redistribution
- ****************************************************/
-
 /* 
 
-This sketch was largely based on the Arduinome clone originally by Owen 
-Vallis & Jordan Hochenbaum: http://flipmu.com/work/arduinome/
+nw2s::b - A microcontroller-based modular synth control framework 
+Copyright (C) 2013 Scott Wilson (thomas.scott.wilson@gmail.com) 
 
-http://monome.org/
+This program is free software: you can redistribute it and/or modify 
+it under the terms of the GNU General Public License as published by 
+the Free Software Foundation, either version 3 of the License, or 
+(at your option) any later version. 
 
-Robin Stubbs
-robin.stubbs@uleth.ca
+This program is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+GNU General Public License for more details. 
 
-*/
+You should have received a copy of the GNU General Public License 
+along with this program. If not, see <http://www.gnu.org/licenses/>. 
+
+
+This code borrows from (and ahem fixes) a number of sources including:
+
+* Code originally written by Limor Fried/Ladyada for Adafruit Industries for the Adafruit Trellis w/HT16K33
+* The Arduinome clone originally by Owen Vallis & Jordan Hochenbaum: http://flipmu.com/work/arduinome/
+* Robin Stubbs https://github.com/rbnstubbs/trellis-monome
+
+*/ 
 
 #include <Wire.h>
 #include "Adafruit_Trellis.h"
