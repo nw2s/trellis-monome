@@ -258,8 +258,6 @@ void setup()
 
 	trellis.clear();
 	trellis.writeDisplay();
-	
-	attachInterrupt(4, buttonPress, CHANGE);
 }
 
 
@@ -272,19 +270,8 @@ void loop()
   	if (t > 50 + lastchecktime)
 	{
 		lastchecktime = t;
-		
-		if (updateState)
-		{
-			updateState = 0;
-			readButtons();
-		}
+		readButtons();
 	}	
-}
-
-void buttonPress()
-{
-	/* Flag that we need to re-read the buttons */
-	updateState = 1;
 }
 
 void readButtons()
